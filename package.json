@@ -11,7 +11,7 @@
   "private": true,
   "subdomain": "TwittMap",
   "scripts": {
-    "start": "app.js"
+    "start": "node app.js"
   },
   "engines": {
     "node": "0.10.x"
