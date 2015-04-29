@@ -102,7 +102,7 @@ function addPoint(tweet)
 }
 
 function startSocket(){
-  socket = io.connect('http://thawing-dawn-7440.herokuapp.com/', {query: "bounds=[-180,-90,180,90]"});
+  socket = io.connect('https://thawing-dawn-7440.herokuapp.com/', {query: "bounds=[-180,-90,180,90]"});
   socket.on('stream', function(tweet){
     addPoint(tweet);
   });
