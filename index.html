@@ -1,0 +1,117 @@
+<html>
+<title>Neighbour's Tweets</title>
+<script src="/socket.io/socket.io.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<body>
+<div id="dvMap" style="width: 100%; height: 100%">
+</div>
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript">
+var map;
+var flag = true;
+var markers = [];
+var index = 0;
+var first = 0;
+var client_lat;
+var client_lng;
+var showTweets;
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (p) {
+        var LatLng = new google.maps.LatLng(p.coords.latitude, p.coords.longitude);
+        client_lng = p.coords.longitude;
+        client_lat = p.coords.latitude;
+        var mapOptions = {
+            center: LatLng,
+            zoom: 13,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        
+        map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
+        var marker = new google.maps.Marker({
+            position: LatLng,
+            map: map,
+            animation: google.maps.Animation.BOUNCE,
+            title: "<div style = 'height:60px;width:200px'><b>Your location:</b><br />Latitude: " + p.coords.latitude + "<br />Longitude: " + p.coords.longitude
+        });
+
+        var infoWindow;
+        google.maps.event.addListener(marker, "mouseover", function (e) {
+            infoWindow = new google.maps.InfoWindow();
+              infoWindow.setContent(marker.title);
+              infoWindow.open(map, marker);
+        });
+        google.maps.event.addListener(marker, "mouseout", function (e) {
+              infoWindow.close();
+        });
+    });
+} else {
+    alert('Geo Location feature is not supported in this browser.');
+}
+
+
+
+var showTweets=true;
+var socket=null;
+window.onload = function() {
+  
+  startSocket();
+};
+
+function addPoint(tweet)
+{
+  if(tweet.geo){
+    console.log(tweet.text);
+    var LatLng1 = new google.maps.LatLng(tweet.geo.coordinates[0],tweet.geo.coordinates[1]);
+    //Assuming 1 degree lattitude and longitude = 50 miles, 1 mile = 0.2 degrees
+    if ((Math.abs(tweet.geo.coordinates[0]-client_lat)<0.02) && (Math.abs(tweet.geo.coordinates[1]-client_lng) < 0.02)) {
+      showTweets = true;
+    }
+    else
+      showTweets = false;
+    if(showTweets){
+        var marker1 = new google.maps.Marker({
+            position: LatLng1,
+            map: map,
+            title: "<div style = 'height:100px;width:200px'><b>Tweet:</b><br /><img src="+tweet.user.profile_image_url+" align=left><b>@"+tweet.user.screen_name+"</b><br>"+tweet.text
+        });
+        var infoWindow;
+        google.maps.event.addListener(marker1, "mouseover", function (e) {
+            infoWindow = new google.maps.InfoWindow();
+              infoWindow.setContent(marker1.title);
+              infoWindow.open(map, marker1);
+        });
+        google.maps.event.addListener(marker1, "mouseout", function (e) {
+              infoWindow.close();
+        });
+
+        if (index-first<100) {
+          markers[index++] = marker1;
+        }
+        else{
+          markers[index++] = marker1;
+          for (var i = 0; i < 10; i++) {
+            markers[first+i].setMap(null);
+          };
+          first += 10;
+        }
+        
+        
+  
+    }   
+  }
+}
+
+function startSocket(){
+  socket = io.connect('http://localhost:8080/', {query: "bounds=[-180,-90,180,90]"});
+  socket.on('stream', function(tweet){
+    addPoint(tweet);
+  });
+  socket.on('reconnect',function(){
+    console.log("Reconnect");
+  });
+}
+
+</script>
+
+</body>
+</html>
