@@ -14,7 +14,7 @@ var index = 0;
 var first = 0;
 var client_lat;
 var client_lng;
-var showTweets;
+var showTweets = true;
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function (p) {
         var LatLng = new google.maps.LatLng(p.coords.latitude, p.coords.longitude);
@@ -22,7 +22,7 @@ if (navigator.geolocation) {
         client_lat = p.coords.latitude;
         var mapOptions = {
             center: LatLng,
-            zoom: 13,
+            zoom: 4,
             mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         
@@ -63,11 +63,11 @@ function addPoint(tweet)
     console.log(tweet.text);
     var LatLng1 = new google.maps.LatLng(tweet.geo.coordinates[0],tweet.geo.coordinates[1]);
     //Assuming 1 degree lattitude and longitude = 50 miles, 1 mile = 0.2 degrees
-    if ((Math.abs(tweet.geo.coordinates[0]-client_lat)<0.02) && (Math.abs(tweet.geo.coordinates[1]-client_lng) < 0.02)) {
-      showTweets = true;
-    }
-    else
-      showTweets = false;
+    //if ((Math.abs(tweet.geo.coordinates[0]-client_lat)<0.02) && (Math.abs(tweet.geo.coordinates[1]-client_lng) < 0.02)) {
+    //  showTweets = true;
+    //}
+    //else
+    //  showTweets = false;
     if(showTweets){
         var marker1 = new google.maps.Marker({
             position: LatLng1,
@@ -102,7 +102,7 @@ function addPoint(tweet)
 }
 
 function startSocket(){
-  socket = io.connect('https://thawing-dawn-7440.herokuapp.com/', {query: "bounds=[-180,-90,180,90]"});
+  socket = io.connect('http://localhost:5000/', {query: "bounds=[-180,-90,180,90]"});
   socket.on('stream', function(tweet){
     addPoint(tweet);
   });
